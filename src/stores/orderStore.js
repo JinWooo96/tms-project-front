@@ -38,5 +38,10 @@ export const useOrderStore = defineStore('order', {
     async createOrder(payload) {
       return orderApi.createOrder(payload);
     },
+
+    /** 주문 상세(화물 목록 포함)를 조회한다. 목록 화면의 상세보기 모달 등에서 사용. */
+    async getOrder(orderId) {
+      return orderApi.getOrder(orderId);
+    },
   },
 });
