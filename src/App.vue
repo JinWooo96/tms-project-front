@@ -22,6 +22,7 @@ const route = useRoute();
         <el-menu-item index="/orders/new">운송주문 등록</el-menu-item>
         <el-menu-item index="/orders">운송요청 관리</el-menu-item>
         <el-menu-item index="/dispatch">운송계획(배차)</el-menu-item>
+        <el-menu-item index="/vehicles">차량 관리</el-menu-item>
       </el-menu>
     </el-header>
 

@@ -7,7 +7,8 @@ import { vehicleApi } from '@/api/vehicleApi';
  */
 export const useVehicleStore = defineStore('vehicle', {
   state: () => ({
-    availableVehicles: [],
+    availableVehicles: [], // 배차 화면에서 사용
+    vehicles: [], // 차량관리 화면에서 사용
     loading: false,
   }),
 
@@ -25,6 +26,21 @@ export const useVehicleStore = defineStore('vehicle', {
     /** 화면을 벗어나거나 주문 선택이 바뀌었을 때 목록을 초기화한다. */
     clearAvailableVehicles() {
       this.availableVehicles = [];
+    },
+
+    /** 차량관리 화면용 전체(또는 상태별) 차량 목록 조회 */
+    async fetchVehicles(params = {}) {
+      this.loading = true;
+      try {
+        this.vehicles = await vehicleApi.getVehicles(params);
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    /** 차량을 등록한다. */
+    async createVehicle(payload) {
+      return vehicleApi.createVehicle(payload);
     },
   },
 });
