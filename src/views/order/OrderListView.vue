@@ -1,3 +1,84 @@
+<template>
+  <div class="order-list-view">
+    <h2>운송요청 관리</h2>
+
+    <div class="filter-bar">
+      <el-select v-model="statusFilter" placeholder="상태 선택" class="status-select">
+        <el-option
+            v-for="option in statusOptions"
+            :key="option.value ?? 'ALL'"
+            :label="option.label"
+            :value="option.value"
+        />
+      </el-select>
+    </div>
+
+    <!-- 운송주문 목록 테이블 -->
+    <el-table :data="orderStore.orders" v-loading="orderStore.loading" stripe border>
+      <el-table-column prop="orderNo" label="주문번호" width="200" />
+      <el-table-column prop="originAddress" label="상차지" min-width="220" show-overflow-tooltip />
+      <el-table-column prop="destAddress" label="도착지" min-width="220" show-overflow-tooltip />
+      <el-table-column label="상태" width="110">
+        <template #default="{ row }">
+          <StatusTag :status="row.status" :status-map="ORDER_STATUS" />
+        </template>
+      </el-table-column>
+      <el-table-column label="상차 희망일시" width="170">
+        <template #default="{ row }">{{ formatDateTime(row.requestedPickupAt) }}</template>
+      </el-table-column>
+      <el-table-column label="등록일시" width="170">
+        <template #default="{ row }">{{ formatDateTime(row.createdAt) }}</template>
+      </el-table-column>
+      <el-table-column label="" width="100" fixed="right">
+        <template #default="{ row }">
+          <el-button size="small" @click="openDetail(row.id)">상세보기</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <el-pagination
+        class="pagination"
+        layout="prev, pager, next, total"
+        :current-page="currentPage"
+        :page-size="pageSize"
+        :total="orderStore.totalElements"
+        @current-change="handlePageChange"
+    />
+
+    <!-- 상세보기 모달 -->
+    <el-dialog v-model="detailVisible" title="운송주문 상세" width="600px">
+      <div v-loading="detailLoading">
+        <template v-if="detailOrder">
+          <el-descriptions :column="2" border>
+            <el-descriptions-item label="주문번호">{{ detailOrder.orderNo }}</el-descriptions-item>
+            <el-descriptions-item label="상태">
+              <StatusTag :status="detailOrder.status" :status-map="ORDER_STATUS" />
+            </el-descriptions-item>
+            <el-descriptions-item label="상차지" :span="2">{{ detailOrder.originAddress }}</el-descriptions-item>
+            <el-descriptions-item label="도착지" :span="2">{{ detailOrder.destAddress }}</el-descriptions-item>
+            <el-descriptions-item label="상차 희망일시">
+              {{ formatDateTime(detailOrder.requestedPickupAt) }}
+            </el-descriptions-item>
+            <el-descriptions-item label="도착 희망일시">
+              {{ formatDateTime(detailOrder.requestedDeliveryAt) }}
+            </el-descriptions-item>
+          </el-descriptions>
+
+          <h4 class="cargo-list-title">화물 목록</h4>
+          <el-table :data="detailOrder.cargoList" size="small" border>
+            <el-table-column prop="widthCm" label="가로(cm)" />
+            <el-table-column prop="lengthCm" label="세로(cm)" />
+            <el-table-column prop="heightCm" label="높이(cm)" />
+            <el-table-column prop="weightKg" label="중량(kg)" />
+            <el-table-column prop="quantity" label="개수" />
+            <el-table-column prop="cargoType" label="유형" />
+          </el-table>
+        </template>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
@@ -65,86 +146,6 @@ function formatDateTime(value) {
   return value.replace('T', ' ');
 }
 </script>
-
-<template>
-  <div class="order-list-view">
-    <h2>운송요청 관리</h2>
-
-    <div class="filter-bar">
-      <el-select v-model="statusFilter" placeholder="상태 선택" class="status-select">
-        <el-option
-            v-for="option in statusOptions"
-            :key="option.value ?? 'ALL'"
-            :label="option.label"
-            :value="option.value"
-        />
-      </el-select>
-    </div>
-
-    <el-table :data="orderStore.orders" v-loading="orderStore.loading" stripe border>
-      <el-table-column prop="orderNo" label="주문번호" width="200" />
-      <el-table-column prop="originAddress" label="상차지" min-width="220" show-overflow-tooltip />
-      <el-table-column prop="destAddress" label="도착지" min-width="220" show-overflow-tooltip />
-      <el-table-column label="상태" width="110">
-        <template #default="{ row }">
-          <StatusTag :status="row.status" :status-map="ORDER_STATUS" />
-        </template>
-      </el-table-column>
-      <el-table-column label="상차 희망일시" width="170">
-        <template #default="{ row }">{{ formatDateTime(row.requestedPickupAt) }}</template>
-      </el-table-column>
-      <el-table-column label="등록일시" width="170">
-        <template #default="{ row }">{{ formatDateTime(row.createdAt) }}</template>
-      </el-table-column>
-      <el-table-column label="" width="100" fixed="right">
-        <template #default="{ row }">
-          <el-button size="small" @click="openDetail(row.id)">상세보기</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <el-pagination
-        class="pagination"
-        layout="prev, pager, next, total"
-        :current-page="currentPage"
-        :page-size="pageSize"
-        :total="orderStore.totalElements"
-        @current-change="handlePageChange"
-    />
-
-    <!-- 상세보기 모달 -->
-    <el-dialog v-model="detailVisible" title="운송주문 상세" width="600px">
-      <div v-loading="detailLoading">
-        <template v-if="detailOrder">
-          <el-descriptions :column="2" border>
-            <el-descriptions-item label="주문번호">{{ detailOrder.orderNo }}</el-descriptions-item>
-            <el-descriptions-item label="상태">
-              <StatusTag :status="detailOrder.status" :status-map="ORDER_STATUS" />
-            </el-descriptions-item>
-            <el-descriptions-item label="상차지" :span="2">{{ detailOrder.originAddress }}</el-descriptions-item>
-            <el-descriptions-item label="도착지" :span="2">{{ detailOrder.destAddress }}</el-descriptions-item>
-            <el-descriptions-item label="상차 희망일시">
-              {{ formatDateTime(detailOrder.requestedPickupAt) }}
-            </el-descriptions-item>
-            <el-descriptions-item label="도착 희망일시">
-              {{ formatDateTime(detailOrder.requestedDeliveryAt) }}
-            </el-descriptions-item>
-          </el-descriptions>
-
-          <h4 class="cargo-list-title">화물 목록</h4>
-          <el-table :data="detailOrder.cargoList" size="small" border>
-            <el-table-column prop="widthCm" label="가로(cm)" />
-            <el-table-column prop="lengthCm" label="세로(cm)" />
-            <el-table-column prop="heightCm" label="높이(cm)" />
-            <el-table-column prop="weightKg" label="중량(kg)" />
-            <el-table-column prop="quantity" label="개수" />
-            <el-table-column prop="cargoType" label="유형" />
-          </el-table>
-        </template>
-      </div>
-    </el-dialog>
-  </div>
-</template>
 
 <style scoped>
 .order-list-view {
