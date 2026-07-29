@@ -4,6 +4,7 @@ import { ElMessage } from 'element-plus';
 import { useVehicleStore } from '@/stores/vehicleStore';
 import { VEHICLE_STATUS } from '@/constants/enums';
 import StatusTag from '@/components/common/StatusTag.vue';
+import AddressSearchInput from '@/components/common/AddressSearchInput.vue';
 
 const vehicleStore = useVehicleStore();
 
@@ -19,6 +20,7 @@ function createEmptyForm() {
     bedWidthCm: null,
     bedLengthCm: null,
     bedHeightCm: null,
+    baseAddress: '',
   };
 }
 
@@ -33,6 +35,7 @@ const rules = {
   bedWidthCm: [{ required: true, message: '적재함 가로 길이는 필수입니다.', trigger: 'blur' }],
   bedLengthCm: [{ required: true, message: '적재함 세로 길이는 필수입니다.', trigger: 'blur' }],
   bedHeightCm: [{ required: true, message: '적재함 높이는 필수입니다.', trigger: 'blur' }],
+  baseAddress: [{ required: true, message: '차고지 주소는 필수입니다.', trigger: 'blur' }],
 };
 
 async function fetchVehicles() {
@@ -98,6 +101,10 @@ onMounted(fetchVehicles);
           <el-input-number v-model="form.bedHeightCm" :min="1" controls-position="right" class="field-input" />
         </el-form-item>
 
+        <el-form-item label="차고지 주소" prop="baseAddress">
+          <AddressSearchInput v-model="form.baseAddress" placeholder="차고지 주소를 검색하세요" />
+        </el-form-item>
+
         <el-form-item>
           <el-button type="primary" :loading="submitting" @click="handleSubmit">등록</el-button>
         </el-form-item>
@@ -115,6 +122,7 @@ onMounted(fetchVehicles);
             {{ row.bedWidthCm }} x {{ row.bedLengthCm }} x {{ row.bedHeightCm }}
           </template>
         </el-table-column>
+        <el-table-column prop="baseAddress" label="차고지" min-width="200" show-overflow-tooltip />
         <el-table-column label="상태" width="110">
           <template #default="{ row }">
             <StatusTag :status="row.status" :status-map="VEHICLE_STATUS" />
@@ -136,5 +144,9 @@ onMounted(fetchVehicles);
 
 .field-input {
   width: 280px;
+}
+
+.field-input-wide {
+  width: 420px;
 }
 </style>

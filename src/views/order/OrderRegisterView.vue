@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { useOrderStore } from '@/stores/orderStore';
 import { CARGO_TYPE } from '@/constants/enums';
+import AddressSearchInput from '@/components/common/AddressSearchInput.vue';
 
 const router = useRouter();
 const orderStore = useOrderStore();
@@ -18,11 +19,7 @@ const cargoTypeOptions = Object.entries(CARGO_TYPE).map(([value, { label }]) => 
 // 이렇게 필드명을 백엔드와 맞춰두면, 별도 변환 없이 그대로 API에 보낼 수 있다.
 const form = reactive({
   originAddress: '',
-  originLat: null,
-  originLng: null,
   destAddress: '',
-  destLat: null,
-  destLng: null,
   requestedPickupAt: null,
   requestedDeliveryAt: null,
   cargoList: [createEmptyCargo()],
@@ -86,7 +83,6 @@ async function handleSubmit() {
   }
 
   submitting.value = true;
-  console.log("form : ", form);
   try {
     await orderStore.createOrder(form);
     ElMessage.success('운송주문이 등록되었습니다.');
@@ -108,11 +104,11 @@ async function handleSubmit() {
       <el-divider content-position="left">상차/도착 정보</el-divider>
 
       <el-form-item label="상차지 주소" prop="originAddress">
-        <el-input v-model="form.originAddress" placeholder="예) 서울시 강남구 테헤란로 123" />
+        <AddressSearchInput v-model="form.originAddress" placeholder="상차지 주소를 검색하세요" />
       </el-form-item>
 
       <el-form-item label="도착지 주소" prop="destAddress">
-        <el-input v-model="form.destAddress" placeholder="예) 부산시 해운대구 센텀중앙로 45" />
+        <AddressSearchInput v-model="form.destAddress" placeholder="도착지 주소를 검색하세요" />
       </el-form-item>
 
       <el-form-item label="상차 희망일시">
