@@ -11,7 +11,62 @@ const orderStore = useOrderStore();
 const vehicleStore = useVehicleStore();
 const dispatchStore = useDispatchStore();
 
-// ---- 1. 배차 대상 주문 선택 ----
+// ---- 0. 자동 배차 추천 ----
+const selectedOrderIdsForRecommend = ref([]); // 체크박스로 선택한 주문 ID들 (선택 추천용)
+const recommending = ref(false);
+const lastRecommendOrderIds = ref(undefined); // 마지막 추천 호출 시 사용한 orderIds (실패 시 재조회용)
+
+function handleRecommendSelectionChange(selectedRows) {
+  selectedOrderIdsForRecommend.value = selectedRows.map((row) => row.id);
+}
+
+async function runRecommendation(orderIds) {
+  recommending.value = true;
+  lastRecommendOrderIds.value = orderIds;
+  try {
+    await dispatchStore.fetchRecommendations(orderIds);
+    if (dispatchStore.recommendations.length === 0) {
+      ElMessage.warning('추천 가능한 배정 조합이 없습니다.');
+    }
+  } catch (error) {
+    ElMessage.error(error.message ?? '자동 배차 추천 계산에 실패했습니다.');
+  } finally {
+    recommending.value = false;
+  }
+}
+
+function handleRecommendAll() {
+  runRecommendation(undefined); // orderIds 없이 호출 -> 전체 추천
+}
+
+function handleRecommendSelected() {
+  if (selectedOrderIdsForRecommend.value.length === 0) {
+    ElMessage.warning('추천받을 주문을 먼저 선택해주세요.');
+    return;
+  }
+  runRecommendation(selectedOrderIdsForRecommend.value); // 선택 추천
+}
+
+async function handleConfirmRecommendation(item) {
+  try {
+    await dispatchStore.confirmDispatch(item.orderId, item.vehicleId);
+    ElMessage.success(`${item.orderNo} 배차가 확정되었습니다.`);
+
+    // 확정된 항목은 추천 목록에서 제거
+    dispatchStore.recommendations = dispatchStore.recommendations.filter(
+        (r) => r.orderId !== item.orderId
+    );
+    await Promise.all([fetchReceivedOrders(), fetchDispatchList()]);
+  } catch (error) {
+    // 서버 재검증 실패 시 (다른 경로로 이미 배차되었거나, 용량 재초과 등)
+    ElMessage.error(error.message ?? '배차 확정에 실패했습니다.');
+    // 추천 목록 자체가 낡았을 수 있으니 같은 조건으로 다시 계산한다.
+    await runRecommendation(lastRecommendOrderIds.value);
+    await fetchReceivedOrders();
+  }
+}
+
+// ---- 1. 배차 대상 주문 선택 (수동 배차용) ----
 const selectedOrderId = ref(null);
 
 async function fetchReceivedOrders() {
@@ -105,11 +160,10 @@ function formatDateTime(value) {
 // ---- 여러 담당자가 동시에 배차 화면을 볼 수 있으므로, 배차 현황은 주기적으로 새로고침한다 ----
 let pollingId = null;
 
-// 폴링(polling) 중
 onMounted(() => {
   fetchReceivedOrders();
   fetchDispatchList();
-  // pollingId = setInterval(fetchDispatchList, 8000); // 8초마다 배차 현황만 자동 갱신
+  pollingId = setInterval(fetchDispatchList, 8000); // 8초마다 배차 현황만 자동 갱신
 });
 
 onUnmounted(() => {
@@ -120,6 +174,61 @@ onUnmounted(() => {
 <template>
   <div class="dispatch-plan-view">
     <h2>운송계획 (배차)</h2>
+
+    <el-card class="section-card">
+      <template #header>0. 자동 배차 추천</template>
+
+      <el-table
+          :data="orderStore.orders"
+          v-loading="recommending"
+          border
+          max-height="260"
+          @selection-change="handleRecommendSelectionChange"
+      >
+        <el-table-column type="selection" width="45" />
+        <el-table-column prop="orderNo" label="주문번호" width="200" />
+        <el-table-column prop="originAddress" label="상차지" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="destAddress" label="도착지" min-width="200" show-overflow-tooltip />
+      </el-table>
+
+      <div class="recommend-button-bar">
+        <el-button :loading="recommending" @click="handleRecommendAll">전체 자동배차 추천</el-button>
+        <el-button
+            type="primary"
+            :disabled="selectedOrderIdsForRecommend.length === 0"
+            :loading="recommending"
+            @click="handleRecommendSelected"
+        >
+          선택 자동배차 추천 ({{ selectedOrderIdsForRecommend.length }}건)
+        </el-button>
+      </div>
+
+      <el-alert
+          v-if="dispatchStore.unassignedOrderIds.length > 0"
+          type="warning"
+          :closable="false"
+          class="unassigned-alert"
+      >
+        {{ dispatchStore.unassignedOrderIds.length }}건의 주문은 이번 추천에서 배정되지 못했습니다.
+        (적합한 차량이 없거나 차량 수 부족)
+      </el-alert>
+
+      <template v-if="dispatchStore.recommendations.length > 0">
+        <el-divider content-position="left">추천 결과</el-divider>
+        <el-table :data="dispatchStore.recommendations" border>
+          <el-table-column prop="orderNo" label="주문번호" width="200" />
+          <el-table-column prop="vehicleNo" label="추천 차량" width="140" />
+          <el-table-column label="거리(km)" width="120">
+            <template #default="{ row }">{{ row.distanceKm.toFixed(1) }}</template>
+          </el-table-column>
+          <el-table-column label="" width="100" fixed="right">
+            <template #default="{ row }">
+              <el-button size="small" type="primary" @click="handleConfirmRecommendation(row)">확정</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </template>
+    </el-card>
 
     <el-card class="section-card">
       <template #header>1. 배차 대상 주문 선택</template>
@@ -222,5 +331,15 @@ onUnmounted(() => {
 .confirm-bar {
   margin-top: 16px;
   text-align: right;
+}
+
+.recommend-button-bar {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.unassigned-alert {
+  margin-top: 12px;
 }
 </style>
