@@ -21,10 +21,13 @@ function handleRecommendSelectionChange(selectedRows) {
 }
 
 async function runRecommendation(orderIds) {
+  console.log("자동배차... orderIds : ", orderIds);
+  // debugger;
   recommending.value = true;
   lastRecommendOrderIds.value = orderIds;
   try {
     await dispatchStore.fetchRecommendations(orderIds);
+    console.log("recommendations : ", dispatchStore);
     if (dispatchStore.recommendations.length === 0) {
       ElMessage.warning('추천 가능한 배정 조합이 없습니다.');
     }
@@ -163,11 +166,11 @@ let pollingId = null;
 onMounted(() => {
   fetchReceivedOrders();
   fetchDispatchList();
-  pollingId = setInterval(fetchDispatchList, 8000); // 8초마다 배차 현황만 자동 갱신
+  // pollingId = setInterval(fetchDispatchList, 8000); // 8초마다 배차 현황만 자동 갱신
 });
 
 onUnmounted(() => {
-  if (pollingId) clearInterval(pollingId);
+  // if (pollingId) clearInterval(pollingId);
 });
 </script>
 

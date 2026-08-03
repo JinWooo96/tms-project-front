@@ -41,6 +41,7 @@ export const useDispatchStore = defineStore('dispatch', {
       this.loading = true;
       try {
         const result = await dispatchApi.getRecommendations(orderIds);
+        console.log("result : ", result);
         this.recommendations = result.recommendations;
         this.unassignedOrderIds = result.unassignedOrderIds;
       } finally {

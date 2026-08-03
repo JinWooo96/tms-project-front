@@ -20,5 +20,5 @@ export const dispatchApi = {
    * POST /api/dispatches/recommendations - 자동 배차 추천 계산
    * orderIds를 안 넘기면(undefined) 전체 추천, 배열을 넘기면 선택 추천
    */
-  getRecommendations: (params) => client.post("/dispatches/recommendations", orderIds && orderIds.length ? {orderIds} : {}),
+  getRecommendations: (orderIds) => client.post("/dispatches/recommendations", orderIds && orderIds.length ? {orderIds} : {}),
 };
