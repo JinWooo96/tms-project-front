@@ -1,12 +1,15 @@
 <script setup>
+defineOptions({ name: 'OrderRegisterView' });
 import { reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { useOrderStore } from '@/stores/orderStore';
 import { CARGO_TYPE } from '@/constants/enums';
 import AddressSearchInput from '@/components/common/AddressSearchInput.vue';
+import { useTabs } from '@/composables/useTabs';
 
-const router = useRouter();
+const route = useRoute();
+const { closeTabAndGo } = useTabs();
 const orderStore = useOrderStore();
 
 // 화물 유형 select box에 쓸 옵션 목록. enums.js의 CARGO_TYPE을 기반으로 만든다.
@@ -86,7 +89,7 @@ async function handleSubmit() {
   try {
     await orderStore.createOrder(form);
     ElMessage.success('운송주문이 등록되었습니다.');
-    router.push('/orders'); // 등록 후 목록 화면으로 이동
+    closeTabAndGo(route.path, '/orders'); // 등록 탭을 닫고 목록 화면으로 이동
   } catch (error) {
     // client.js 인터셉터가 던진 { code, message } 형태의 에러
     ElMessage.error(error.message ?? '운송주문 등록에 실패했습니다.');

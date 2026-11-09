@@ -1,5 +1,6 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue';
+defineOptions({ name: 'VehicleManageView' });
+import { onActivated, reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useVehicleStore } from '@/stores/vehicleStore';
 import { VEHICLE_STATUS } from '@/constants/enums';
@@ -65,7 +66,8 @@ async function handleSubmit() {
   }
 }
 
-onMounted(fetchVehicles);
+// 탭 복귀 시마다 최신 차량 목록을 불러온다.
+onActivated(fetchVehicles);
 </script>
 
 <template>

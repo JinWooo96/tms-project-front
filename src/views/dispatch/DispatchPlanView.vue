@@ -1,5 +1,6 @@
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+defineOptions({ name: 'DispatchPlanView' });
+import { onActivated, onDeactivated, onUnmounted, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useOrderStore } from '@/stores/orderStore';
 import { useVehicleStore } from '@/stores/vehicleStore';
@@ -163,12 +164,19 @@ function formatDateTime(value) {
 // ---- 여러 담당자가 동시에 배차 화면을 볼 수 있으므로, 배차 현황은 주기적으로 새로고침한다 ----
 let pollingId = null;
 
-onMounted(() => {
+// 탭을 보여줄 때마다 실행된다. (처음 열 때 + 다른 탭에서 돌아올 때)
+onActivated(() => {
   fetchReceivedOrders();
   fetchDispatchList();
   // pollingId = setInterval(fetchDispatchList, 8000); // 8초마다 배차 현황만 자동 갱신
 });
 
+// 다른 탭으로 숨겨질 때: 폴링을 쓴다면 여기서 멈춘다.
+onDeactivated(() => {
+  // if (pollingId) clearInterval(pollingId);
+});
+
+// 탭을 닫아 완전히 파괴될 때
 onUnmounted(() => {
   // if (pollingId) clearInterval(pollingId);
 });

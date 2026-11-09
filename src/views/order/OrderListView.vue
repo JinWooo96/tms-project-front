@@ -80,7 +80,9 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+// KeepAlive의 include가 이 이름으로 캐시 대상을 찾는다. (router/pages.js의 componentName과 같아야 함)
+defineOptions({ name: 'OrderListView' });
+import { onActivated, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useOrderStore } from '@/stores/orderStore';
 import { ORDER_STATUS } from '@/constants/enums';
@@ -121,7 +123,8 @@ function handlePageChange(page) {
   fetchList();
 }
 
-onMounted(fetchList);
+// keep-alive 환경: 탭을 처음 열 때와 다른 탭에서 돌아올 때마다 목록을 새로 불러온다. (필터/페이지는 유지됨)
+onActivated(fetchList);
 
 // ---- 상세보기 모달 ----
 const detailVisible = ref(false);
