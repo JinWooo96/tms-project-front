@@ -42,5 +42,10 @@ export const useVehicleStore = defineStore('vehicle', {
     async createVehicle(payload) {
       return vehicleApi.createVehicle(payload);
     },
+
+    /* 차량을 삭제한다. (목록 갱신은 호출부에서 fetchVehicles()로 처리) */
+    async deleteVehicle(vehicleId) {
+      return vehicleApi.deleteVehicle(vehicleId);
+    },
   },
 });

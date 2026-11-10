@@ -12,6 +12,9 @@ export const vehicleApi = {
   getAvailableVehicles: (orderId) =>
       client.get('/vehicles/available', { params: { orderId } }),
 
+  /* DELETE /api/vehicles/{vehicleId} - 차량 삭제 */
+  deleteVehicle: (vehicleId) => client.delete(`/vehicles/${vehicleId}`),
+
   /** GET /api/vehicles?status= - 차량 전체 조회 (관리용) */
   getVehicles: (params) => client.get('/vehicles', { params }),
 };
