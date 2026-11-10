@@ -41,12 +41,36 @@ export const useDispatchStore = defineStore('dispatch', {
       this.loading = true;
       try {
         const result = await dispatchApi.getRecommendations(orderIds);
-        console.log("result : ", result);
         this.recommendations = result.recommendations;
         this.unassignedOrderIds = result.unassignedOrderIds;
       } finally {
         this.loading = false;
       }
+    },
+
+    /**
+     * 추천 여러 건을 순서대로 확정한다. (한 건이 실패해도 나머지는 계속 진행)
+     * 순차 호출이므로 앞 건이 차지한 용량이 다음 건의 서버 재검증에 반영된다.
+     * @returns {{ succeededIds: number[], failures: { orderId:number, orderNo:string, message:string }[]}}
+     */
+    async confirmBulk(items) {
+      const succeededIds = [];
+      const failures = [];
+      for (const item of items) {
+        try {
+          await dispatchApi.confirmDispatch(item.orderId, item.vehicleId);
+          succeededIds.push(item.orderId);
+        } catch (error) {
+          failures.push({ orderId: item.orderId, orderNo: item.orderNo, message: error.message });
+        }
+      }
+      this.removeRecommendations(succeededIds); // 확정된 건은 추천 목록에서 제거
+      return { succeededIds, failures };
+    },
+
+    /** 추천 목록에서 특정 주문들을 제거한다. */
+    removeRecommendations(orderIds) {
+      this.recommendations = this.recommendations.filter((r) => !orderIds.includes(r.orderId));
     },
 
     /**

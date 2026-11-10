@@ -137,7 +137,7 @@ onActivated(fetchVehicles);
 
 <style scoped>
 .vehicle-manage-view {
-  max-width: 900px;
+  width: 100%;
 }
 
 .section-card {

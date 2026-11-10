@@ -311,9 +311,9 @@ function handleCancel() {
 </template>
 
 <style scoped>
-/* 이 영역의 "자기 폭"을 기준으로 반응형을 판단한다. (뷰포트 기준이면 사이드바 폭 때문에 어긋난다) */
+/* 이 영역의 "자기 폭"을 기준으로 반응형을 판단한다. (뷰포트 기준이면 사이드바 폭 때문에 어긋난다)
+   max-width를 두지 않아, 화면이 넓어지면(화면 배율을 줄이면) 카드도 화면 폭을 끝까지 채운다. */
 .order-register {
-  max-width: 1400px;
   container-type: inline-size;
 }
 
@@ -327,10 +327,10 @@ function handleCancel() {
   color: var(--tms-text-muted);
 }
 
-/* 본문(입력) + 우측 요약 패널. 화면이 좁아지면 요약 패널이 아래로 내려간다. */
 .layout-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  /* 요약 패널은 전체 폭의 22%, 단 320~480px 사이로 제한한다. */
+  grid-template-columns: minmax(0, 1fr) clamp(320px, 22%, 480px);
   gap: 20px;
   align-items: start;
 }

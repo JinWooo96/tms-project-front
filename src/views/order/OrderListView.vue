@@ -167,8 +167,9 @@ function formatDateTime(value) {
 </script>
 
 <style scoped>
+/* 최대 폭을 두지 않는다. (화면이 넓어지면 표 카드도 화면 폭을 끝까지 채운다) */
 .order-list-view {
-  max-width: 1400px;
+  width: 100%;
 }
 
 .page-head {
