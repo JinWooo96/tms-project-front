@@ -12,6 +12,7 @@ import './style.css';
 const app = createApp(App); // root로 하는 Vue 앱을 하나 만든다.
 
 // 필요한 기능들 장착
+// 모든 컴포넌트에서 따로 import를 할 필요가 없게 된다.
 app.use(createPinia());
 app.use(router);
 app.use(ElementPlus);

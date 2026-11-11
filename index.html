@@ -1,3 +1,4 @@
+<!-- 앱의 진입 HTML (단 하나의 페이지) -->
 <!doctype html>
 <html lang="ko">
 <head>
@@ -10,10 +11,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <!-- Daum(카카오) 우편번호 서비스: 주소 검색 팝업. API 키 불필요. -->
-    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
 <body>
 <div id="app"></div>
+<!-- main.js 호출 (Vue 앱 생성) -->
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>

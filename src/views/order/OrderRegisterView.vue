@@ -1,3 +1,118 @@
+<template>
+  <div class="order-register">
+    <div class="page-head">
+      <h2>운송주문 등록</h2>
+      <p>상차지·도착지·화물 정보를 입력하면 배차 대기 상태로 접수됩니다.</p>
+    </div>
+
+    <div class="layout-grid">
+      <div class="main-col">
+        <el-form ref="formRef" :model="form" :rules="rules" label-position="top" @submit.prevent>
+          <!-- 1. 경로 · 일정 -->
+          <section class="card route-card">
+            <h3>1. 경로 · 일정</h3>
+
+            <div class="stage">
+              <div class="rail"><span class="dot dot-pickup">상</span><span class="line"></span></div>
+              <div class="stage-body">
+                <el-form-item label="상차지 주소" prop="originAddress">
+                  <AddressSearchInput v-model="form.originAddress" placeholder="상차지 주소를 검색하세요" />
+                </el-form-item>
+                <el-form-item label="상차 희망일시">
+                  <el-date-picker
+                      v-model="form.requestedPickupAt"
+                      type="datetime"
+                      placeholder="상차 희망일시 선택"
+                      value-format="YYYY-MM-DDTHH:mm:ss"
+                      format="YYYY-MM-DD HH:mm"
+                  />
+                  <QuickChips
+                      class="chips"
+                      :options="pickupChips"
+                      :active-value="form.requestedPickupAt"
+                      aria-label="상차 일시 빠른 선택"
+                      @select="pickPickup"
+                  />
+                </el-form-item>
+              </div>
+            </div>
+
+            <div class="stage">
+              <div class="rail"><span class="dot dot-dest">하</span></div>
+              <div class="stage-body">
+                <el-form-item label="도착지 주소" prop="destAddress">
+                  <AddressSearchInput v-model="form.destAddress" placeholder="도착지 주소를 검색하세요" />
+                </el-form-item>
+                <el-form-item label="도착 희망일시" prop="requestedDeliveryAt">
+                  <el-date-picker
+                      v-model="form.requestedDeliveryAt"
+                      type="datetime"
+                      placeholder="상차 희망일시 이후로 선택"
+                      value-format="YYYY-MM-DDTHH:mm:ss"
+                      format="YYYY-MM-DD HH:mm"
+                      :disabled-date="isDeliveryDateDisabled"
+                  />
+                  <QuickChips
+                      class="chips"
+                      :options="deliveryChips"
+                      :active-value="form.requestedDeliveryAt"
+                      aria-label="도착 일시 빠른 선택"
+                      @select="pickDelivery"
+                  />
+                </el-form-item>
+              </div>
+            </div>
+          </section>
+        </el-form>
+
+        <!-- 2. 화물 정보 -->
+        <section class="card cargo-card">
+          <div class="card-head">
+            <h3>2. 화물 정보</h3>
+            <el-button @click="addCargoRow">+ 화물 추가</el-button>
+          </div>
+
+          <div class="preset-bar">
+            <span>규격 빠른 입력</span>
+            <QuickChips
+                :options="presetOptions"
+                aria-label="화물 규격 빠른 입력"
+                @select="(o) => applyPreset(o.preset)"
+            />
+          </div>
+
+          <div class="cargo-header">
+            <span>#</span><span>가로(cm)</span><span>세로(cm)</span><span>높이(cm)</span>
+            <span>중량(kg/개)</span><span>개수</span><span>유형</span><span></span>
+          </div>
+
+          <CargoRow
+              v-for="(cargo, index) in form.cargoList"
+              :key="cargo._key"
+              :cargo="cargo"
+              :index="index"
+              :removable="form.cargoList.length > 1"
+              :show-errors="submitAttempted"
+              @focus="activeRowKey = cargo._key"
+              @copy="copyCargoRow(index)"
+              @remove="removeCargoRow(index)"
+          />
+        </section>
+      </div>
+
+      <OrderSummaryPanel
+          class="summary"
+          :checks="checks"
+          :summary="summary"
+          :show-errors="submitAttempted"
+          :submitting="submitting"
+          @submit="handleSubmit"
+          @cancel="handleCancel"
+      />
+    </div>
+  </div>
+</template>
+
 <script setup>
 defineOptions({ name: 'OrderRegisterView' });
 import { computed, nextTick, reactive, ref, watch } from 'vue';
@@ -33,6 +148,7 @@ function createEmptyCargo(overrides = {}) {
   };
 }
 
+// 운송주문 정보 form
 const form = reactive({
   originAddress: '',
   destAddress: '',
@@ -194,121 +310,6 @@ function handleCancel() {
   closeTabAndGo(route.path, '/orders');
 }
 </script>
-
-<template>
-  <div class="order-register">
-    <div class="page-head">
-      <h2>운송주문 등록</h2>
-      <p>상차지·도착지·화물 정보를 입력하면 배차 대기 상태로 접수됩니다.</p>
-    </div>
-
-    <div class="layout-grid">
-      <div class="main-col">
-        <el-form ref="formRef" :model="form" :rules="rules" label-position="top" @submit.prevent>
-          <!-- 1. 경로 · 일정 -->
-          <section class="card route-card">
-            <h3>1. 경로 · 일정</h3>
-
-            <div class="stage">
-              <div class="rail"><span class="dot dot-pickup">상</span><span class="line"></span></div>
-              <div class="stage-body">
-                <el-form-item label="상차지 주소" prop="originAddress">
-                  <AddressSearchInput v-model="form.originAddress" placeholder="상차지 주소를 검색하세요" />
-                </el-form-item>
-                <el-form-item label="상차 희망일시">
-                  <el-date-picker
-                      v-model="form.requestedPickupAt"
-                      type="datetime"
-                      placeholder="상차 희망일시 선택"
-                      value-format="YYYY-MM-DDTHH:mm:ss"
-                      format="YYYY-MM-DD HH:mm"
-                  />
-                  <QuickChips
-                      class="chips"
-                      :options="pickupChips"
-                      :active-value="form.requestedPickupAt"
-                      aria-label="상차 일시 빠른 선택"
-                      @select="pickPickup"
-                  />
-                </el-form-item>
-              </div>
-            </div>
-
-            <div class="stage">
-              <div class="rail"><span class="dot dot-dest">하</span></div>
-              <div class="stage-body">
-                <el-form-item label="도착지 주소" prop="destAddress">
-                  <AddressSearchInput v-model="form.destAddress" placeholder="도착지 주소를 검색하세요" />
-                </el-form-item>
-                <el-form-item label="도착 희망일시" prop="requestedDeliveryAt">
-                  <el-date-picker
-                      v-model="form.requestedDeliveryAt"
-                      type="datetime"
-                      placeholder="상차 희망일시 이후로 선택"
-                      value-format="YYYY-MM-DDTHH:mm:ss"
-                      format="YYYY-MM-DD HH:mm"
-                      :disabled-date="isDeliveryDateDisabled"
-                  />
-                  <QuickChips
-                      class="chips"
-                      :options="deliveryChips"
-                      :active-value="form.requestedDeliveryAt"
-                      aria-label="도착 일시 빠른 선택"
-                      @select="pickDelivery"
-                  />
-                </el-form-item>
-              </div>
-            </div>
-          </section>
-        </el-form>
-
-        <!-- 2. 화물 정보 -->
-        <section class="card cargo-card">
-          <div class="card-head">
-            <h3>2. 화물 정보</h3>
-            <el-button @click="addCargoRow">+ 화물 추가</el-button>
-          </div>
-
-          <div class="preset-bar">
-            <span>규격 빠른 입력</span>
-            <QuickChips
-                :options="presetOptions"
-                aria-label="화물 규격 빠른 입력"
-                @select="(o) => applyPreset(o.preset)"
-            />
-          </div>
-
-          <div class="cargo-header">
-            <span>#</span><span>가로(cm)</span><span>세로(cm)</span><span>높이(cm)</span>
-            <span>중량(kg/개)</span><span>개수</span><span>유형</span><span></span>
-          </div>
-
-          <CargoRow
-              v-for="(cargo, index) in form.cargoList"
-              :key="cargo._key"
-              :cargo="cargo"
-              :index="index"
-              :removable="form.cargoList.length > 1"
-              :show-errors="submitAttempted"
-              @focus="activeRowKey = cargo._key"
-              @copy="copyCargoRow(index)"
-              @remove="removeCargoRow(index)"
-          />
-        </section>
-      </div>
-
-      <OrderSummaryPanel
-          class="summary"
-          :checks="checks"
-          :summary="summary"
-          :show-errors="submitAttempted"
-          :submitting="submitting"
-          @submit="handleSubmit"
-          @cancel="handleCancel"
-      />
-    </div>
-  </div>
-</template>
 
 <style scoped>
 /* 이 영역의 "자기 폭"을 기준으로 반응형을 판단한다. (뷰포트 기준이면 사이드바 폭 때문에 어긋난다)

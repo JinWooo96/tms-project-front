@@ -1,3 +1,10 @@
+<template>
+  <div class="address-search-input">
+    <el-input :model-value="modelValue" :placeholder="placeholder" readonly @click="openAddressSearch" />
+    <el-button @click="openAddressSearch">주소 검색</el-button>
+  </div>
+</template>
+
 <script setup>
 /**
  * Daum(카카오) 우편번호 서비스를 감싼 주소 검색 입력 컴포넌트.
@@ -38,13 +45,6 @@ function openAddressSearch() {
   }).open();
 }
 </script>
-
-<template>
-  <div class="address-search-input">
-    <el-input :model-value="modelValue" :placeholder="placeholder" readonly @click="openAddressSearch" />
-    <el-button @click="openAddressSearch">주소 검색</el-button>
-  </div>
-</template>
 
 <style scoped>
 .address-search-input {

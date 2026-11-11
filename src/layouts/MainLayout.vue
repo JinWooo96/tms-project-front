@@ -1,3 +1,27 @@
+<template>
+  <div class="layout">
+    <AppSidebar />
+
+    <div class="main-column">
+      <AppHeader />
+      <TabBar />
+
+      <main class="content">
+        <!--
+          KeepAlive: 화면을 파괴하지 않고 메모리에 보관했다가 다시 보여준다. (탭 전환 시 입력값/스크롤/필터 유지)
+          include: "열려 있는 탭"의 컴포넌트만 보관한다. 탭을 닫으면 목록에서 빠지면서 캐시도 함께 정리된다.
+          include는 컴포넌트 이름으로 비교하므로 각 View에 defineOptions({ name })이 있어야 한다.
+        -->
+        <RouterView v-slot="{ Component }">
+          <KeepAlive :include="tabStore.cachedNames">
+            <component :is="Component" />
+          </KeepAlive>
+        </RouterView>
+      </main>
+    </div>
+  </div>
+</template>
+
 <script setup>
 import { watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -30,30 +54,6 @@ watch(
   { immediate: true },
 );
 </script>
-
-<template>
-  <div class="layout">
-    <AppSidebar />
-
-    <div class="main-column">
-      <AppHeader />
-      <TabBar />
-
-      <main class="content">
-        <!--
-          KeepAlive: 화면을 파괴하지 않고 메모리에 보관했다가 다시 보여준다. (탭 전환 시 입력값/스크롤/필터 유지)
-          include: "열려 있는 탭"의 컴포넌트만 보관한다. 탭을 닫으면 목록에서 빠지면서 캐시도 함께 정리된다.
-          include는 컴포넌트 이름으로 비교하므로 각 View에 defineOptions({ name })이 있어야 한다.
-        -->
-        <RouterView v-slot="{ Component }">
-          <KeepAlive :include="tabStore.cachedNames">
-            <component :is="Component" />
-          </KeepAlive>
-        </RouterView>
-      </main>
-    </div>
-  </div>
-</template>
 
 <style scoped>
 .layout {

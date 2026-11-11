@@ -1,3 +1,19 @@
+<template>
+  <div class="quick-chips" role="group" :aria-label="ariaLabel">
+    <button
+        v-for="option in options"
+        :key="option.label"
+        type="button"
+        class="chip"
+        :class="{ 'is-active': activeValue !== null && option.value === activeValue }"
+        :disabled="option.disabled"
+        @click="emit('select', option)"
+    >
+      {{ option.label }}
+    </button>
+  </div>
+</template>
+
 <script setup>
 /**
  * 입력칸 아래에 붙는 "빠른 선택" 칩 목록. (날짜 빠른 선택, 화물 규격 프리셋 등에 공통 사용)
@@ -11,22 +27,6 @@ defineProps({
 
 const emit = defineEmits(['select']);
 </script>
-
-<template>
-  <div class="quick-chips" role="group" :aria-label="ariaLabel">
-    <button
-      v-for="option in options"
-      :key="option.label"
-      type="button"
-      class="chip"
-      :class="{ 'is-active': activeValue !== null && option.value === activeValue }"
-      :disabled="option.disabled"
-      @click="emit('select', option)"
-    >
-      {{ option.label }}
-    </button>
-  </div>
-</template>
 
 <style scoped>
 .quick-chips {

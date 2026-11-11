@@ -1,3 +1,60 @@
+
+
+<template>
+  <div class="cargo-row" @focusin="emit('focus')">
+    <div class="cargo-line">
+      <span class="index">{{ index + 1 }}</span>
+
+      <el-input-number
+          v-model="cargo.widthCm"
+          :min="1" :precision="0" :controls="false" placeholder="가로"
+          :class="{ 'is-error': dimsError && !cargo.widthCm }"
+          aria-label="가로(cm)"
+      />
+      <el-input-number
+          v-model="cargo.lengthCm"
+          :min="1" :precision="0" :controls="false" placeholder="세로"
+          :class="{ 'is-error': dimsError && !cargo.lengthCm }"
+          aria-label="세로(cm)"
+      />
+      <el-input-number
+          v-model="cargo.heightCm"
+          :min="1" :precision="0" :controls="false" placeholder="높이"
+          :class="{ 'is-error': dimsError && !cargo.heightCm }"
+          aria-label="높이(cm)"
+      />
+      <el-input-number
+          v-model="cargo.weightKg"
+          :min="0.01" :step="0.1" :controls="false" placeholder="중량"
+          :class="{ 'is-error': weightError }"
+          aria-label="중량(kg/개)"
+      />
+      <el-input-number
+          v-model="cargo.quantity"
+          :min="1" :precision="0" :controls="false" placeholder="개수"
+          :class="{ 'is-error': qtyError }"
+          aria-label="개수"
+      />
+      <el-select v-model="cargo.cargoType" aria-label="화물 유형">
+        <el-option v-for="o in cargoTypeOptions" :key="o.value" :label="o.label" :value="o.value" />
+      </el-select>
+
+      <div class="actions">
+        <el-tooltip content="행 복사" placement="top">
+          <el-button :icon="CopyDocument" text aria-label="행 복사" @click="emit('copy')" />
+        </el-tooltip>
+        <el-tooltip content="행 삭제" placement="top">
+          <el-button :icon="Close" text aria-label="행 삭제" :disabled="!removable" @click="emit('remove')" />
+        </el-tooltip>
+      </div>
+    </div>
+
+    <div v-if="message.text" class="message" :class="{ 'is-error': message.error }">
+      {{ message.text }}
+    </div>
+  </div>
+</template>
+
 <script setup>
 import { computed } from 'vue';
 import { CopyDocument, Close } from '@element-plus/icons-vue';
@@ -49,61 +106,6 @@ const message = computed(() => {
   return { error: false, text: parts.join(' · ') };
 });
 </script>
-
-<template>
-  <div class="cargo-row" @focusin="emit('focus')">
-    <div class="cargo-line">
-      <span class="index">{{ index + 1 }}</span>
-
-      <el-input-number
-        v-model="cargo.widthCm"
-        :min="1" :precision="0" :controls="false" placeholder="가로"
-        :class="{ 'is-error': dimsError && !cargo.widthCm }"
-        aria-label="가로(cm)"
-      />
-      <el-input-number
-        v-model="cargo.lengthCm"
-        :min="1" :precision="0" :controls="false" placeholder="세로"
-        :class="{ 'is-error': dimsError && !cargo.lengthCm }"
-        aria-label="세로(cm)"
-      />
-      <el-input-number
-        v-model="cargo.heightCm"
-        :min="1" :precision="0" :controls="false" placeholder="높이"
-        :class="{ 'is-error': dimsError && !cargo.heightCm }"
-        aria-label="높이(cm)"
-      />
-      <el-input-number
-        v-model="cargo.weightKg"
-        :min="0.01" :step="0.1" :controls="false" placeholder="중량"
-        :class="{ 'is-error': weightError }"
-        aria-label="중량(kg/개)"
-      />
-      <el-input-number
-        v-model="cargo.quantity"
-        :min="1" :precision="0" :controls="false" placeholder="개수"
-        :class="{ 'is-error': qtyError }"
-        aria-label="개수"
-      />
-      <el-select v-model="cargo.cargoType" aria-label="화물 유형">
-        <el-option v-for="o in cargoTypeOptions" :key="o.value" :label="o.label" :value="o.value" />
-      </el-select>
-
-      <div class="actions">
-        <el-tooltip content="행 복사" placement="top">
-          <el-button :icon="CopyDocument" text aria-label="행 복사" @click="emit('copy')" />
-        </el-tooltip>
-        <el-tooltip content="행 삭제" placement="top">
-          <el-button :icon="Close" text aria-label="행 삭제" :disabled="!removable" @click="emit('remove')" />
-        </el-tooltip>
-      </div>
-    </div>
-
-    <div v-if="message.text" class="message" :class="{ 'is-error': message.error }">
-      {{ message.text }}
-    </div>
-  </div>
-</template>
 
 <style scoped>
 .cargo-row {
